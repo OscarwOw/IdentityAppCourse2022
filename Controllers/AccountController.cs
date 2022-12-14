@@ -8,9 +8,9 @@ namespace IdentityAppCourse2022.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
-        public AccountController(UserManager<IdentityUser> userManager,SignInManager<IdentityUser> signInManager)
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
+        public AccountController(UserManager<User> userManager,SignInManager<User> signInManager)
         {
             _signInManager = signInManager;
             _userManager = userManager;
@@ -18,6 +18,29 @@ namespace IdentityAppCourse2022.Controllers
         public IActionResult Index()
         {
             return View();
+        }
+        [HttpGet]
+        public IActionResult Login(string? returnUrl = null)
+        {
+            LoginViewModel loginViewModel = new LoginViewModel();
+            loginViewModel.ReturnUrl = returnUrl ?? Url.Content("~/");
+            return View(loginViewModel);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginViewModel loginViewModel, string returnUrl)
+        {
+            var result = await _signInManager.PasswordSignInAsync(loginViewModel.UserName ,loginViewModel.Password, loginViewModel.RememberMe, lockoutOnFailure: false);
+            if (result.Succeeded)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Invalid login attempt");
+                return View(loginViewModel);
+            }
+            return View(loginViewModel);
         }
 
         public async Task<IActionResult> Register(string? returnUrl = null)
@@ -44,6 +67,13 @@ namespace IdentityAppCourse2022.Controllers
                 ModelState.AddModelError("password", "User could not be created. Password not unique enough");
             }
             return View(registerViewModel);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> logOff()
+        {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction("Index", "Home");
         }
     }
 }
