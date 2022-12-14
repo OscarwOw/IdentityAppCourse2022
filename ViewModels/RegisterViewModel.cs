@@ -4,6 +4,7 @@ namespace IdentityAppCourse2022.ViewModels
 {
     public class RegisterViewModel
     {
+        [Required]
         [EmailAddress]
         [Display(Name = "Email")]
         public string Email { get; set; }
